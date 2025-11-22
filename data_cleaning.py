@@ -8,7 +8,7 @@ def main():
     ####Checking cusotmer id 
 
 
-    df = pd.read_csv("data/telco_not_messy.csv")
+    df = pd.read_csv("data/telco_customer_data_v2.csv")
     rename_dict = {
     "customerID": "customer_id",
     "gender": "gender",
@@ -207,7 +207,7 @@ def main():
 
     autoprintaft("churn") 
     
-    df.to_csv("data/data_cleaned_not_messy.csv")
+    df.to_csv("data/data_cleaned.csv")
     print("Cleaned data saved")
     print(df.dtypes)
     ####
