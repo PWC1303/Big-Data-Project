@@ -24,8 +24,8 @@ def main():
                 json.dump(obj,f)
     parser = argparse.ArgumentParser(prog='ProgramName',description='What the program does',epilog='Text at the bottom of help')
     parser.add_argument("--model", type=str, default="logm_l1")
-    parser.add_argument("--cv", type = int, default=10)
-    parser.add_argument("--poly",type=str,default="poly")
+    parser.add_argument("--cv", type = int, default=10, help ="Choose cv")
+    parser.add_argument("--svc_type",type=str,default="rbf",   help= "choose between poly and rbf kernel")
     args = parser.parse_args()
     df = pd.read_csv("data/data_cleaned.csv")
     df = df.dropna()
@@ -34,7 +34,7 @@ def main():
     X_tr,X_te,y_tr,y_te = train_test_split(X,y,test_size=0.3,random_state=33)
     if args.model == "logm_l1":
         model = make_pipeline(StandardScaler(),LogisticRegressionCV(penalty="l1",solver ="liblinear",
-                                cv =args.cv,scoring= "roc_auc" ,max_iter=1000,random_state=33,verbose=2))
+                                cv =args.cv,scoring= "roc_auc" ,max_iter=1000,random_state=33,verbose=1))
         model.fit(X_tr,y_tr)
         results = model.named_steps["logisticregressioncv"]
         cv_auc = results.scores_[1].mean()
@@ -83,17 +83,26 @@ def main():
     if args.model =="svc":
         model = make_pipeline(StandardScaler(),
                               SVC(probability=True))
+        if args.svc_type == "poly":
+            with open("tuning_results/params_dist/svc_param_dist_poly.json", "r") as f:
+                param_dist = json.load(f)
+
+        if args.svc_type == "rbf":
+            with open("tuning_results/params_dist/svc_param_dist_rbf.json", "r") as f:
+                param_dist = json.load(f)
+
+      
+
+            
 
 
-        if args.poly:
-            param_dist= json.load("svc_params_poly.json")
-        if args.rbf:
-            param_dist= json.load("svc_params_rbf.json")
+        
+  
 
         random_search = RandomizedSearchCV(
             estimator=model,
             param_distributions=param_dist,
-            n_iter=10,
+            n_iter=8,
             cv=3,
             scoring="roc_auc",   
             n_jobs=-1,
@@ -106,11 +115,11 @@ def main():
         cv_auc = random_search.best_score_
         
 
-        save_json(f"tuning_results/params/{args.model}_params.json",
+        save_json(f"tuning_results/params/{args.model}_{args.svc_type}_params.json",
           {"params": params})
-        save_json(f"tuning_results/cv_auc/{args.model}_cv_auc.json", {"cv_auc": cv_auc})
-        joblib.dump(random_search.best_estimator_, f"tuning_results/models/{args.model}.pkl")
-        print(f"params, cv_auc and model.pkl saved for {args.model}")
+        save_json(f"tuning_results/cv_auc/{args.model}_{args.svc_type}_cv_auc.json", {"cv_auc": cv_auc})
+        joblib.dump(random_search.best_estimator_, f"tuning_results/models/{args.model}_type_{args.svc_type}.pkl")
+        print(f"params, cv_auc and model.pkl saved for {args.model}_type_{args.svc_type} ")
 
     if args.model =="rfc":
       param_dist = {

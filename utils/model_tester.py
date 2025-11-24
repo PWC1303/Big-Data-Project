@@ -6,6 +6,13 @@ def save_json(fname,obj):
                 json.dump(obj,f)
 def model_tester(y_te,yhat_prob,model_name,alpha):
 
+        """
+        Args: 
+                y_te: testing data for y 
+                yhat_prob: array of probabilites 
+
+        """
+
 
         yhat = np.where(yhat_prob>=alpha,1,0)
 
